@@ -8,6 +8,7 @@ The documentation [can be found here](https://fagh.github.io/fa.intelligence.bif
 | --- | --- | --- |
 | Bifröst API | [![Containerization Workflow](https://github.com/faGH/fa.intelligence.bifrost/actions/workflows/containerization_workflow.yml/badge.svg)](https://github.com/faGH/fa.intelligence.bifrost/actions/workflows/containerization_workflow.yml) | GitHub Actions
 ## Docker Support
+![Docker Badge](https://dockeri.co/image/frostaura/bifrost)
 ### Local
 The project supports being run as a container and is in fact indended to. In order to run this service locally, simply run `docker-compose up` in the directory where the `docker-compose.yml` file resides. The service will now run.
 ### Docker Hub
