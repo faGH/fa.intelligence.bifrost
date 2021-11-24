@@ -8,7 +8,7 @@ now = f'{datetime.now()}'.replace(' ', 'T')
 api = Namespace(f'{APP_ROUTE_PREFIX}/binance', description='A collection of use-cases for Binance market data.')
 forecast_response_model = get_forecast_response(api)
 
-@api.route('pair/<string:pair_name>/period/1h/forecast')
+@api.route('/pair/<string:pair_name>/period/1h/forecast')
 class SpotPairForecast(Resource):
     @api.doc('Spot Pair Forecast', params={
         'pair_name': {'description': 'The pair name that matches that of the Binance exchange for which to forecast. This value is case-insensitive and the underscore is optional.'},
