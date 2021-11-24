@@ -4,7 +4,7 @@ FrostAura Bifröst is a platform for making forecasts.
 ## Status
 | Project | Status | Platform
 | --- | --- | --- |
-| Bifröst API | ![GitHub Actions](https://travis-ci.org/faGH/fa.services.plutus.svg?branch=main) | GitHub Actions
+| Bifröst API | [![Containerization Workflow](https://github.com/faGH/fa.intelligence.bifrost/actions/workflows/containerization_workflow.yml/badge.svg)](https://github.com/faGH/fa.intelligence.bifrost/actions/workflows/containerization_workflow.yml) | GitHub Actions
 ## Docker Support
 ### Local
 The project supports being run as a container and is in fact indended to. In order to run this service locally, simply run `docker-compose up` in the directory where the `docker-compose.yml` file resides. The service will now run.
