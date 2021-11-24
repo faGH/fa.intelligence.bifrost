@@ -20,7 +20,7 @@ Automated builds are set up for Docker Hub. To use this service without the sour
             restart: unless-stopped
             container_name: bifrost
             ports:
-                - 8000:80
+                - 8000:9999
 
 ## How To
 ### Getting Started
