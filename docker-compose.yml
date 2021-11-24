@@ -1,0 +1,10 @@
+version: '3'
+services:
+  bifrost:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    container_name: bifrost
+    ports:
+      - 8000:80
