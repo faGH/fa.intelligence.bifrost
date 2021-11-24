@@ -1,6 +1,8 @@
 # fa.intelligence.bifröst
 ## Description
 FrostAura Bifröst is a platform for making forecasts.
+## Documentation
+The documentation [can be found here](https://fagh.github.io/fa.intelligence.bifrost/).
 ## Status
 | Project | Status | Platform
 | --- | --- | --- |
