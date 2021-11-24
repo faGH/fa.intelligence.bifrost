@@ -6,9 +6,7 @@ from flask_restx import reqparse
 
 now = f'{datetime.now()}'.replace(' ', 'T')
 api = Namespace(f'{APP_ROUTE_PREFIX}/binance', description='A collection of use-cases for Binance market data.')
-forecast_response_model = api.model('SpotPairForecastRequest', {
-    'response': get_forecast_response()
-})
+forecast_response_model = get_forecast_response(api)
 
 @api.route('pair/<string:pair_name>/period/1h/forecast')
 class SpotPairForecast(Resource):
