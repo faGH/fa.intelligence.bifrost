@@ -4,7 +4,7 @@ from flask_restx import Namespace, Resource
 from datetime import datetime
 from flask_restx import reqparse
 
-now = f'{datetime.now()}'.replace(' ', 'T')
+now = f'{datetime.utcnow()}'.replace(' ', 'T')
 api = Namespace(f'{APP_ROUTE_PREFIX}/binance', description='A collection of use-cases for Binance market data.')
 forecast_response_model = get_forecast_response(api)
 
