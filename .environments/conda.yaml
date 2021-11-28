@@ -7,4 +7,5 @@ dependencies:
   - flask
   - pandas
   - flask_restx
+  - python-dateutil
 name: container-environment
