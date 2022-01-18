@@ -8,4 +8,5 @@ dependencies:
   - pandas
   - flask_restx
   - python-dateutil
+  - prophet
 name: container-environment
