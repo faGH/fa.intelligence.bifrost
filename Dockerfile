@@ -16,7 +16,6 @@ RUN pip install -U flask
 RUN pip install -U flask_restx
 
 # Install PIP dependencies for the Prophet library.
-#RUN pip install -U -r requirements.prophet.txt
 RUN pip install -U pymeeus ujson korean-lunar-calendar hijri-converter ephem convertdate setuptools-git LunarCalendar holidays cmdstanpy
 RUN pip install -U pystan==2.19.1.1
 RUN pip install -U prophet
