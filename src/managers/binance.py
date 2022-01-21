@@ -6,8 +6,10 @@ from flask_restx import Namespace, Resource
 from datetime import datetime
 from dateutil import parser as date_parser
 from flask_restx import reqparse
+from data.config_data_access import ConfigDataAccess
 
-data_access = BinanceDataAccess()
+config_data_access = ConfigDataAccess()
+data_access = BinanceDataAccess(config_data_access)
 market_data_forecasting_engine = MarketDataForecastingEngine()
 now = f'{datetime.utcnow()}'.replace(' ', 'T')
 api = Namespace(f'{APP_ROUTE_PREFIX}/binance', description='A collection of use-cases for Binance market data.')

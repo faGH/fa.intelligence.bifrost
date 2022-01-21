@@ -16,7 +16,7 @@ def get_forecast_response(api):
 
 class ForecastRequest:
     def __init__(self, pair_name: str, period: str, cutoff_time_utc: datetime, n_forecasts: int):
-        self.pair_name = pair_name.replace('_', '').upper()
+        self.pair_name = pair_name.replace('_', '').replace('-', '').replace('/', '').upper()
         self.period = period
         self.cutoff_time_utc = cutoff_time_utc
         self.n_forecasts = n_forecasts
