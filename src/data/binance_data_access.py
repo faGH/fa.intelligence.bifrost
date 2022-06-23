@@ -12,7 +12,7 @@ class BinanceDataAccess():
     def __init__(self, config_data_access: ConfigDataAccess):
         if config_data_access is None:
             raise Exception('Valid config_data_access is required.')
-        
+
         self.base_url = 'https://api.binance.com/api/v3'
         self.data_dir_path = f'{os.getcwd()}/{config_data_access.data_dir_relative_path}'
         self.symbols = config_data_access.symbols
