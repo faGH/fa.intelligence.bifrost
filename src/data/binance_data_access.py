@@ -1,6 +1,6 @@
 from models.binance import ForecastRequest
 from pandas import DataFrame
-from config_data_access import ConfigDataAccess
+from .config_data_access import ConfigDataAccess
 import requests
 import json
 import pandas as pd
@@ -101,6 +101,6 @@ class BinanceDataAccess():
         return self.__json_to_market_data_frame__(data)
 
     def initialize_all_pairs_cache(self):
-        all_pair_data = [self.get_market_data(symbol) for symbol in self.symbols]
+        all_pair_data = [self.get_market_data(ForecastRequest(pair_name=symbol, period=None, cutoff_time_utc=None, n_forecasts=None)) for symbol in self.symbols]
 
         return all_pair_data
