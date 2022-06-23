@@ -1,7 +1,9 @@
 {
-	"recommendations": [
-        "ms-python.python",
-        "kevinrose.vsc-python-indent",
-        "ms-azuretools.vscode-docker"
-	]
+        "recommendations": [
+                "ms-python.python",
+                "kevinrose.vsc-python-indent",
+                "ms-azuretools.vscode-docker",
+                "ms-python.pylint",
+                "matangover.mypy"
+        ]
 }
