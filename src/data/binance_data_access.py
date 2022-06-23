@@ -13,11 +13,8 @@ class BinanceDataAccess():
         if config_data_access is None:
             raise Exception('Valid config_data_access is required.')
 
-        self.base_url = 'https://api.binance.com/api/v3'
+        self.base_url = config_data_access.binance_base_api_url
         self.data_dir_path = f'{os.getcwd()}/{config_data_access.data_dir_relative_path}'
-        self.symbols = config_data_access.symbols
-        self.window_length_in_days = config_data_access.window_length_in_days
-        self.initialize_all_pairs_cache()
 
     def __get_market_data_from_binance__(self, pair: str, start_time_ms, end_time_ms, period: str):
         url = f'{self.base_url}/klines'
@@ -102,8 +99,3 @@ class BinanceDataAccess():
             self.__cache_market_data__(pair, request.period, data)
 
         return self.__json_to_market_data_frame__(data)
-
-    def initialize_all_pairs_cache(self):
-        all_pair_data = [self.get_market_data(ForecastRequest(pair_name=symbol, period=None, cutoff_time_utc=None, n_forecasts=None)) for symbol in self.symbols]
-
-        return all_pair_data
