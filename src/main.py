@@ -8,8 +8,8 @@ app = flask.Flask(__name__)
 
 # Define Swagger API.
 api = Api(
-    app, 
-    version=APP_VERSION, 
+    app,
+    version=APP_VERSION,
     title=f'{APP_NAME} API',
     description=APP_DESCRIPTION
 )

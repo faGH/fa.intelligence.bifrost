@@ -2,6 +2,7 @@
 from datetime import datetime
 from flask_restx import fields
 
+
 def get_forecast_response(api):
     forecast_model = api.model('Forecast', {
         'timestamp_utc': fields.DateTime(description='The time for which this forecast is applicable.'),
@@ -11,8 +12,9 @@ def get_forecast_response(api):
         'pairName': fields.String(description='The pair name used on Binance to fetch market data.'),
         'forecasts': fields.List(fields.Nested(forecast_model))
     })
-    
+
     return response_model
+
 
 class ForecastRequest:
     def __init__(self, pair_name: str, period: str, cutoff_time_utc: datetime, n_forecasts: int):
@@ -21,10 +23,12 @@ class ForecastRequest:
         self.cutoff_time_utc = cutoff_time_utc
         self.n_forecasts = n_forecasts
 
+
 class Forecast:
     def __init__(self, timestamp_utc: datetime, close: float):
         self.timestamp_utc = timestamp_utc
         self.close = close
+
 
 class ForecastResponse:
     def __init__(self, pair_name: str, forecasts: list):

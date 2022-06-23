@@ -1,5 +1,6 @@
 {
-    "python.linting.pylintEnabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Args": ["--ignore=E501"],
     "python.linting.enabled": true,
     "files.exclude": {
         "**/.git": true,
@@ -8,7 +9,13 @@
         "**/CVS": true,
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
-        "**/*cache*/**": true
+        "**/*cache*/**": true,
+        "junit": true,
+        "dist": true,
+        ".coverage": true,
+        "coverage.xml": true,
+        "swagger.json": true,
+        ".vscode": true
     },
     "python.testing.pytestArgs": [
         "test/t1",

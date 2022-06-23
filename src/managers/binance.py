@@ -15,6 +15,7 @@ now = f'{datetime.utcnow()}'.replace(' ', 'T')
 api = Namespace(f'{APP_ROUTE_PREFIX}/binance', description='A collection of use-cases for Binance market data.')
 forecast_response_model = get_forecast_response(api)
 
+
 @api.route('/pair/<string:pair_name>/period/<string:period>/forecast')
 class SpotPairForecast(Resource):
     @api.doc('Spot Pair Forecast', params={
@@ -29,16 +30,16 @@ class SpotPairForecast(Resource):
         request = self.__get_parsed_request(pair_name, period)
         market_data = data_access.get_market_data(request)
         response = market_data_forecasting_engine.get_forecasts(market_data)
-        
+
         return response, 200
-    
+
     def __get_parsed_request(self, pair_name: str, period: str) -> ForecastRequest:
         parser = reqparse.RequestParser()
         parser.add_argument('n_forecasts', type=int, default=5)
         parser.add_argument('cutoff_time_utc', type=str, default=now)
         args = parser.parse_args()
-        
+
         cutoff_time_utc = args['cutoff_time_utc']
         n_forecasts = args['n_forecasts']
-        
+
         return ForecastRequest(pair_name, period, date_parser.parse(cutoff_time_utc), n_forecasts)
