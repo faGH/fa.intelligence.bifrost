@@ -4,6 +4,7 @@
                 "kevinrose.vsc-python-indent",
                 "ms-azuretools.vscode-docker",
                 "ms-python.pylint",
-                "matangover.mypy"
+                "matangover.mypy",
+                "Cameron.vscode-pytest"
         ]
 }

@@ -1,1 +1,4 @@
 **/__pycache__/**
+junit/test-results.xml
+coverage.xml
+.coverage

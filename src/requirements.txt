@@ -1,0 +1,9 @@
+setuptools
+wheel
+pytest
+pytest-cov
+flake8
+flake8-html
+mypy
+flask
+flask_restx

@@ -9,5 +9,15 @@
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
         "**/*cache*/**": true
-    }
+    },
+    "python.testing.pytestArgs": [
+        "test/t1",
+        "--doctest-modules",
+        "--junitxml=junit/test-results.xml",
+        "--cov=test",
+        "--cov-report=xml",
+        "-s"
+    ],
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
 }

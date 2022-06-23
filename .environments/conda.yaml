@@ -8,5 +8,11 @@ dependencies:
   - pandas
   - flask_restx
   - python-dateutil
-  - prophet
+  - setuptools
+  - wheel
+  - pytest
+  - pytest-cov
+  - flake8
+  - flake8-html
+  - mypy
 name: container-environment
