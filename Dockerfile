@@ -12,7 +12,6 @@ RUN pip install -U pip
 RUN pip install -r ./src/requirements.txt
 
 RUN python -m pytest test/t1 --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml -s
-RUN python -m mypy --check-untyped-defs src
 RUN python -m flake8 src --format=html --htmldir=flake-report --ignore=E501
 
 # System-level dependencies.
