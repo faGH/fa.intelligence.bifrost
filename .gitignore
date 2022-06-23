@@ -3,4 +3,4 @@ junit/test-results.xml
 coverage.xml
 .coverage
 flake-report
-data
+pair_data
