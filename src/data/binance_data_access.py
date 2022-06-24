@@ -80,9 +80,14 @@ class BinanceDataAccess():
 
         last_cache_entry_time: str = str(last_cache_entry)
         last_cache_entry_datetime: dt = dt.fromtimestamp(last_cache_entry / 1000)
+        last_delta_data = None
 
         while not (last_cache_entry_datetime.day == now.day and last_cache_entry_datetime.month == now.month and last_cache_entry_datetime.year == now.year and last_cache_entry_datetime.hour == now.hour):
             delta_data = self.__get_market_data_from_binance__(pair, last_cache_entry_time, end, request.period)
+
+            if last_delta_data == delta_data:
+                break
+
             data: list = data + delta_data
 
             if len(data) <= 1:
@@ -92,5 +97,6 @@ class BinanceDataAccess():
             last_cache_entry_time = str(last_cache_entry)
             last_cache_entry_datetime = dt.fromtimestamp(last_cache_entry / 1000)
             self.__cache_market_data__(pair, request.period, data)
+            last_delta_data = delta_data
 
         return self.__json_to_market_data_frame__(data)
