@@ -19,6 +19,7 @@ class BinanceDataAccess():
 
         self.base_url = config_data_access.binance_base_api_url
         self.cache_data_access = cache_data_access
+        self.window_length_in_days = config_data_access.window_length_in_days
 
     def __get_market_data_from_binance__(self, pair: str, start_time_ms: int, end_time_ms: int, period: str):
         '''Fetch symbol price information from Binance'''
