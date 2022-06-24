@@ -8,3 +8,7 @@ flask
 flask_restx
 pandas
 requests
+xgboost
+numpy
+sklearn
+graphviz

@@ -31,7 +31,8 @@ class SpotPairForecast(Resource):
         request = self.__get_parsed_request(pair_name, period)
         market_data = data_access.get_market_data(request)
         market_data = market_data.loc[:f'{request.cutoff_time_utc.year}-{request.cutoff_time_utc.month}-{request.cutoff_time_utc.day}']
-        response = market_data_forecasting_engine.get_next_candle_close_prediction(market_data)
+        prediction = market_data_forecasting_engine.get_next_candle_close_prediction(market_data)
+        response = NextReponse(pair_name=pair_name, predicted_close=prediction)
 
         return response, 200
 

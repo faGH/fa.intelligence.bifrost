@@ -15,4 +15,8 @@ dependencies:
   - flake8
   - flake8-html
   - mypy
+  - xgboost
+  - numpy
+  - sklearn
+  - graphviz
 name: container-environment
