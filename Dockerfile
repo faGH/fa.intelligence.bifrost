@@ -7,6 +7,10 @@ WORKDIR /app
 COPY ./src/ ./src
 COPY ./test/ ./test
 
+# Create data directories
+RUN mkdir pair_data_tmp
+RUN mkdir pair_data
+
 # Perform quality checks.
 RUN pip install -U pip
 RUN pip install -r ./src/requirements.txt

@@ -16,9 +16,9 @@ class MarketDataForecastingEngine():
         '''Get the predicted next closing price of the asset.'''
         data = self.__prep_data__(market_data)
         predictions = BifrostGradientBoosterEngine(data=data,
-                                                 column_name_to_predict='close',
-                                                 data_time_column_name='time',
-                                                 enable_global_scaling=True) \
+                                                   column_name_to_predict='close',
+                                                   data_time_column_name='time',
+                                                   enable_global_scaling=True) \
             .fit(enable_hyperparameter_optimization=True) \
             .predict(future_data=data.iloc[-1:])
 

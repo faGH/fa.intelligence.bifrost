@@ -18,6 +18,7 @@ api = Namespace(f'{APP_ROUTE_PREFIX}/binance', description='A collection of use-
 forecast_response_model = get_forecast_response(api)
 next_response_model = get_next_response(api)
 
+
 @api.route('/pair/<string:pair_name>/period/<string:period>/next')
 class SpotPairForecast(Resource):
     @api.doc('Spot Pair Forecast', params={
