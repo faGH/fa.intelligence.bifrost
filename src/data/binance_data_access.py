@@ -6,6 +6,7 @@ import requests
 import json
 import pandas as pd
 from datetime import datetime as dt, timedelta
+import numpy as np
 
 
 class BinanceDataAccess():
@@ -51,9 +52,14 @@ class BinanceDataAccess():
     def __json_to_market_data_frame__(self, json_data: list):
         '''Convert the market data json into a dataframe.'''
         data: pd.DataFrame = pd.DataFrame(json_data)
-        data.columns = ['datetime', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'qav', 'num_trades', 'taker_base_vol', 'taker_quote_vol', 'ignore']
-        data.index = [dt.fromtimestamp(x / 1000.0) for x in data.datetime]
-        data: pd.DataFrame = data.astype(float)
+        data.columns = ['time', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'qav', 'num_trades', 'taker_base_vol', 'taker_quote_vol', 'ignore']
+        data = data.iloc[:, :6]
+        data['time'] = pd.to_datetime(data['time'], unit='ms')
+        data['open'] = data['open'].astype(np.float64)
+        data['high'] = data['high'].astype(np.float64)
+        data['low'] = data['low'].astype(np.float64)
+        data['close'] = data['close'].astype(np.float64)
+        data['volume'] = data['volume'].astype(np.float64).astype(np.int64)
 
         return data
 

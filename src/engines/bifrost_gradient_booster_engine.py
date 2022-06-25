@@ -42,7 +42,8 @@ class BifrostGradientBoosterEngine():
                  replace_missing_values: bool = True,
                  drop_columns_with_no_unique_values: bool = True,
                  replace_whitespace: bool = True):
-        self.data = data
+        self.data = data.copy()
+        self.columns_to_drop = list()
         self.column_name_to_predict = column_name_to_predict
         self.use_binary_classifier = use_binary_classifier
         self.model = None
@@ -57,7 +58,7 @@ class BifrostGradientBoosterEngine():
         if self.data_time_column_name is not None:
             # Move all Y values one into the future as we would want to predict the future Y given a current state (X).
             self.data[self.column_name_to_predict] = self.data[self.column_name_to_predict].shift(1, fill_value=0)
-            self.__featurize_time_from_column__(self.data_time_column_name)
+            self.data = self.__featurize_time_from_column__(self.data, self.data_time_column_name)
 
         if replace_missing_values:
             self.replace_missing_values()
@@ -129,28 +130,30 @@ class BifrostGradientBoosterEngine():
         else:
             print(f'Test Data Accuracy: {accuracy_score(test_column_data, predictions)}')
 
-    def __featurize_time_from_column__(self, column_name: str, column_prefix: str = 't_'):
-        parsed_date_temporary_column = pd.to_datetime(self.data[column_name])
-        self.data.drop(columns=[column_name], inplace=True)
+    def __featurize_time_from_column__(self, data: pd.DataFrame, column_name: str, column_prefix: str = 't_'):
+        __data__: pd.DataFrame = data.copy()
 
-        self.data[f'{column_prefix}year'] = parsed_date_temporary_column.dt.year
-        self.data[f'{column_prefix}month'] = parsed_date_temporary_column.dt.month
-        self.data[f'{column_prefix}day'] = parsed_date_temporary_column.dt.day
-        self.data[f'{column_prefix}hour'] = parsed_date_temporary_column.dt.hour
-        self.data[f'{column_prefix}minute'] = parsed_date_temporary_column.dt.minute
-        self.data[f'{column_prefix}day_of_year'] = parsed_date_temporary_column.dt.dayofyear
-        self.data[f'{column_prefix}day_of_week'] = parsed_date_temporary_column.dt.dayofweek
-        self.data[f'{column_prefix}quarter'] = parsed_date_temporary_column.dt.quarter
+        parsed_date_temporary_column = pd.to_datetime(__data__[column_name])
+        __data__.drop(columns=[column_name], inplace=True)
+
+        __data__[f'{column_prefix}year'] = parsed_date_temporary_column.dt.year
+        __data__[f'{column_prefix}month'] = parsed_date_temporary_column.dt.month
+        __data__[f'{column_prefix}day'] = parsed_date_temporary_column.dt.day
+        __data__[f'{column_prefix}hour'] = parsed_date_temporary_column.dt.hour
+        __data__[f'{column_prefix}minute'] = parsed_date_temporary_column.dt.minute
+        __data__[f'{column_prefix}day_of_year'] = parsed_date_temporary_column.dt.dayofyear
+        __data__[f'{column_prefix}day_of_week'] = parsed_date_temporary_column.dt.dayofweek
+        __data__[f'{column_prefix}quarter'] = parsed_date_temporary_column.dt.quarter
         self.is_timeseries_problem = True
 
         print(f'Extracted time series features from column "{column_name}" and dropped the original column.')
 
-        return self
+        return __data__
 
     def drop_columns_with_no_unique_values(self):
-        columns_to_drop = [c for c in self.data.columns if len(self.data[c].unique()) <= 1]
-        print(f'Dropping {len(columns_to_drop)} columns due to only containing 1 or less unique values. -> {columns_to_drop}')
-        self.data.drop(columns=columns_to_drop, inplace=True)
+        self.columns_to_drop = [c for c in self.data.columns if len(self.data[c].unique()) <= 1]
+        print(f'Dropping {len(self.columns_to_drop)} columns due to only containing 1 or less unique values. -> {self.columns_to_drop}')
+        self.data.drop(columns=self.columns_to_drop, inplace=True)
 
         return self
 
@@ -269,12 +272,18 @@ class BifrostGradientBoosterEngine():
     def predict(self,
                 future_data: pd.DataFrame,
                 bypass_scale_application: bool = False) -> pd.Series:
-        if not bypass_scale_application:
-            self.__apply_common_scale__(future_data, self.global_scaling_factor)
+        __future_data__: pd.DataFrame = future_data.copy()
 
-        matrix, x, y = self.__get_df_matrix__(future_data, column_name_to_predict=self.column_name_to_predict, name='Prediction')
+        if self.is_timeseries_problem and self.data_time_column_name in future_data.columns:
+            __future_data__ = self.__featurize_time_from_column__(__future_data__, self.data_time_column_name)
+            __future_data__.drop(columns=self.columns_to_drop, inplace=True)
+
+        if not bypass_scale_application:
+            self.__apply_common_scale__(__future_data__, self.global_scaling_factor)
+
+        matrix, x, y = self.__get_df_matrix__(__future_data__, column_name_to_predict=self.column_name_to_predict, name='Prediction')
         predictions = pd.Series(self.model.predict(matrix)) / self.global_scaling_factor
-        predictions.index = future_data.index
+        predictions.index = __future_data__.index
 
         return predictions
 
