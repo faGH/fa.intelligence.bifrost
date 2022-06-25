@@ -19,4 +19,5 @@ dependencies:
   - numpy
   - sklearn
   - graphviz
+  - flask_healthz
 name: container-environment
