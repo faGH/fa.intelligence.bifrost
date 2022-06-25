@@ -4,8 +4,8 @@ FROM python:3.8.10
 # Copy all required source files to the container.
 WORKDIR /app
 
-COPY ./src/ ./src
-COPY ./test/ ./test
+COPY ./src ./src
+COPY ./test ./test
 
 # Create data directories
 RUN mkdir pair_data_tmp
