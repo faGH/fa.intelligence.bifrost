@@ -1,23 +1,30 @@
 from models.binance import ForecastRequest
 from pandas import DataFrame
 from .config_data_access import ConfigDataAccess
+from .fs_cache_data_access import FsCacheDataAccess
 import requests
 import json
 import pandas as pd
 from datetime import datetime as dt, timedelta
-import os
+import numpy as np
 
 
 class BinanceDataAccess():
-    def __init__(self, config_data_access: ConfigDataAccess):
-        self.base_url = 'https://api.binance.com/api/v3'
-        self.data_dir_path = f'{os.getcwd()}/{config_data_access.data_dir_relative_path}'
-        self.symbols = config_data_access.symbols
-        self.window_length_in_days = config_data_access.window_length_in_days
-        self.initialize_all_pairs_cache()
+    '''A client for fetching market information from the Binance exchange.'''
+    def __init__(self, config_data_access: ConfigDataAccess, cache_data_access: FsCacheDataAccess):
+        if config_data_access is None:
+            raise Exception('Valid config_data_access is required.')
 
-    def __get_market_data_from_binance__(self, pair: str, start_time_ms, end_time_ms, period: str):
-        url = f'{self.base_url}/klines'
+        if cache_data_access is None:
+            raise Exception('Valid cache_data_access is required.')
+
+        self.base_url = config_data_access.binance_base_api_url
+        self.cache_data_access = cache_data_access
+        self.window_length_in_days = config_data_access.window_length_in_days
+
+    def __get_market_data_from_binance__(self, pair: str, start_time_ms: int, end_time_ms: int, period: str):
+        '''Fetch symbol price information from Binance'''
+        url: str = f'{self.base_url}/klines'
         request = {
             'symbol': pair,
             'interval': period,
@@ -33,62 +40,61 @@ class BinanceDataAccess():
         return json.loads(response_text)
 
     def __get_market_data_from_cache__(self, pair: str, period: str):
-        fs_path = f'{self.data_dir_path}/{pair}/{period}.txt'
-        response = []
+        '''Get pair market data from cache first.'''
+        key: str = f'{pair}.{period}'
+        response: list = self.cache_data_access.get_from_cache(key=key)
 
-        if os.path.exists(fs_path):
-            print(f'Reading from cache path "{fs_path}".')
-
-            with open(fs_path, 'r') as f:
-                response = json.loads(f.read())
-        else:
-            print(f'Creating path "{fs_path}".')
-
-            if not os.path.exists(self.data_dir_path):
-                os.mkdir(self.data_dir_path)
-            if not os.path.exists(f'{self.data_dir_path}/{pair}'):
-                os.mkdir(f'{self.data_dir_path}/{pair}')
-            if not os.path.exists(fs_path):
-                with open(fs_path, 'w') as f:
-                    f.write(json.dumps(response))
+        if response is None:
+            return []
 
         return response
 
-    def __json_to_market_data_frame__(self, json_data):
-        data = pd.DataFrame(json_data)
-        data.columns = ['datetime', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'qav', 'num_trades', 'taker_base_vol', 'taker_quote_vol', 'ignore']
-        data.index = [dt.fromtimestamp(x / 1000.0) for x in data.datetime]
-        data = data.astype(float)
+    def __json_to_market_data_frame__(self, json_data: list):
+        '''Convert the market data json into a dataframe.'''
+        data: pd.DataFrame = pd.DataFrame(json_data)
+        data.columns = ['time', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'qav', 'num_trades', 'taker_base_vol', 'taker_quote_vol', 'ignore']
+        data = data.iloc[:, :6]
+        data['time'] = pd.to_datetime(data['time'], unit='ms')
+        data['open'] = data['open'].astype(np.float64)
+        data['high'] = data['high'].astype(np.float64)
+        data['low'] = data['low'].astype(np.float64)
+        data['close'] = data['close'].astype(np.float64)
+        data['volume'] = data['volume'].astype(np.float64).astype(np.int64)
 
         return data
 
     def __cache_market_data__(self, pair: str, period: str, data):
-        fs_path = f'{self.data_dir_path}/{pair}/{period}.txt'
+        '''Persist pair market data to cache.'''
+        key: str = f'{pair}.{period}'
 
-        with open(fs_path, 'w') as f:
-            f.write(json.dumps(data))
+        self.cache_data_access.write_to_cache(key=key, data=data)
 
     def get_market_data(self, request: ForecastRequest) -> DataFrame:
         '''Get the kline market data for a given symbol <pair> with a candle length of <period>, for <window_length_in_days> days ago to now.'''
-        now = dt.now()
-        pair = request.pair_name
-        start = str(int((dt(now.year, now.month, now.day) - timedelta(days=self.window_length_in_days)).timestamp() * 1000))
-        end = str(int(now.timestamp() * 1000))
+        now: int = dt.now()
+        pair: str = request.pair_name
+        start: str = str(int((dt(now.year, now.month, now.day) - timedelta(days=self.window_length_in_days)).timestamp() * 1000))
+        end: str = str(int(now.timestamp() * 1000))
 
         print(f'Fetching data for "{pair}" from "{start}" to "{end}" ({self.window_length_in_days} days).')
 
-        data = self.__get_market_data_from_cache__(pair, request.period)
+        data: list = self.__get_market_data_from_cache__(pair, request.period)
         last_cache_entry = int(start)
 
         if len(data) > 1:
             last_cache_entry = data[-1][0]
 
-        last_cache_entry_time = str(last_cache_entry)
-        last_cache_entry_datetime = dt.fromtimestamp(last_cache_entry / 1000)
+        last_cache_entry_time: str = str(last_cache_entry)
+        last_cache_entry_datetime: dt = dt.fromtimestamp(last_cache_entry / 1000)
+        last_delta_data = None
 
         while not (last_cache_entry_datetime.day == now.day and last_cache_entry_datetime.month == now.month and last_cache_entry_datetime.year == now.year and last_cache_entry_datetime.hour == now.hour):
             delta_data = self.__get_market_data_from_binance__(pair, last_cache_entry_time, end, request.period)
-            data = data + delta_data
+
+            if last_delta_data == delta_data:
+                break
+
+            data: list = data + delta_data
 
             if len(data) <= 1:
                 return None
@@ -97,10 +103,6 @@ class BinanceDataAccess():
             last_cache_entry_time = str(last_cache_entry)
             last_cache_entry_datetime = dt.fromtimestamp(last_cache_entry / 1000)
             self.__cache_market_data__(pair, request.period, data)
+            last_delta_data = delta_data
 
         return self.__json_to_market_data_frame__(data)
-
-    def initialize_all_pairs_cache(self):
-        all_pair_data = [self.get_market_data(ForecastRequest(pair_name=symbol, period=None, cutoff_time_utc=None, n_forecasts=None)) for symbol in self.symbols]
-
-        return all_pair_data

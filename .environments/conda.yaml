@@ -15,4 +15,9 @@ dependencies:
   - flake8
   - flake8-html
   - mypy
+  - xgboost
+  - numpy
+  - sklearn
+  - graphviz
+  - flask_healthz
 name: container-environment
