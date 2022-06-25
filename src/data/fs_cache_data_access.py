@@ -2,6 +2,7 @@ from .config_data_access import ConfigDataAccess
 import os
 import os.path
 import json
+from pathlib import Path
 
 
 class FsCacheDataAccess():
@@ -33,6 +34,8 @@ class FsCacheDataAccess():
 
         if data is None:
             raise Exception('Valid data is required.')
+
+        Path(self.data_dir_path).mkdir(parents=True, exist_ok=True)
 
         file_name: str = f'{self.data_dir_path}/{key}.fa'
 

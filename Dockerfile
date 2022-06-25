@@ -7,10 +7,6 @@ WORKDIR /app
 COPY ./src ./src
 COPY ./test ./test
 
-# Create data directories
-RUN mkdir pair_data_tmp
-RUN mkdir pair_data
-
 # Perform quality checks.
 RUN pip install -U pip
 RUN pip install -r ./src/requirements.txt
@@ -23,7 +19,8 @@ USER root
 RUN apt-get update -y && apt-get install build-essential python-dev -y
 
 # Setup HTTP service for hosting our model.
-ENTRYPOINT ["python", "src/main.py"]
+WORKDIR /app/src
+ENTRYPOINT ["python", "main.py"]
 
 # Expose the HTTP service on port 9999 which can be mapped by the host to a port of your choice.
 EXPOSE 9999
