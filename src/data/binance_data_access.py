@@ -22,24 +22,24 @@ class BinanceDataAccess():
         self.cache_data_access = cache_data_access
         self.window_length_in_days = config_data_access.window_length_in_days
 
-    def __get_market_data_from_binance__(self, pair: str, start_time_ms: int, end_time_ms: int, period: str):
+    def __get_market_data_from_binance__(self, pair: str, start_time_ms: int, end_time_ms: int, period: str) -> list:
         '''Fetch symbol price information from Binance'''
         url: str = f'{self.base_url}/klines'
-        request = {
+        request: dict = {
             'symbol': pair,
             'interval': period,
             'startTime': start_time_ms,
             'endTime': end_time_ms
         }
-        response = requests.get(url, params=request)
-        response_text = response.text
+        response: requests.Response = requests.get(url, params=request)
+        response_text: str = response.text
 
         if not response.status_code == 200:
             raise Exception(f'Failed to fetch market data from Binance with error: {response_text}')
 
         return json.loads(response_text)
 
-    def __get_market_data_from_cache__(self, pair: str, period: str):
+    def __get_market_data_from_cache__(self, pair: str, period: str) -> list:
         '''Get pair market data from cache first.'''
         key: str = f'{pair}.{period}'
         response: list = self.cache_data_access.get_from_cache(key=key)
@@ -49,7 +49,7 @@ class BinanceDataAccess():
 
         return response
 
-    def __json_to_market_data_frame__(self, json_data: list):
+    def __json_to_market_data_frame__(self, json_data: list) -> pd.DataFrame:
         '''Convert the market data json into a dataframe.'''
         data: pd.DataFrame = pd.DataFrame(json_data)
         data.columns = ['time', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'qav', 'num_trades', 'taker_base_vol', 'taker_quote_vol', 'ignore']
@@ -79,17 +79,17 @@ class BinanceDataAccess():
         print(f'Fetching data for "{pair}" from "{start}" to "{end}" ({self.window_length_in_days} days).')
 
         data: list = self.__get_market_data_from_cache__(pair, request.period)
-        last_cache_entry = int(start)
+        last_cache_entry: int = int(start)
 
         if len(data) > 1:
             last_cache_entry = data[-1][0]
 
         last_cache_entry_time: str = str(last_cache_entry)
         last_cache_entry_datetime: dt = dt.fromtimestamp(last_cache_entry / 1000)
-        last_delta_data = None
+        last_delta_data: list = None
 
         while not (last_cache_entry_datetime.day == now.day and last_cache_entry_datetime.month == now.month and last_cache_entry_datetime.year == now.year and last_cache_entry_datetime.hour == now.hour):
-            delta_data = self.__get_market_data_from_binance__(pair, last_cache_entry_time, end, request.period)
+            delta_data: list = self.__get_market_data_from_binance__(pair, last_cache_entry_time, end, request.period)
 
             if last_delta_data == delta_data:
                 break

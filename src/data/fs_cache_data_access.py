@@ -13,7 +13,7 @@ class FsCacheDataAccess():
 
         self.data_dir_path = f'{os.getcwd()}/{config_data_access.data_dir_relative_path}'
 
-    def get_from_cache(self, key: str):
+    def get_from_cache(self, key: str) -> list:
         '''Fetch data from cache should the key exist. Otherwise None.'''
         if key is None:
             raise Exception('Valid key is required.')
