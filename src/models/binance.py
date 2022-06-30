@@ -6,23 +6,13 @@ from flask_restx import fields
 def get_next_response(api):
     next_model = api.model('Next', {
         'pair_name': fields.String(description='The pair name of next value.'),
-        'predicted_close': fields.Float(description='The predicted closing price of the asset for the next candle.')
+        'prior_candle_close': fields.Float(description='The closing price of the prior/last candle to the prediction.'),
+        'prior_candle_time': fields.String(description='The opening time of the prior/last candle to the prediction.'),
+        'predicted_close': fields.Float(description='The predicted closing price of the asset for the next candle.'),
+        'predicted_candle_time': fields.String(description='The opening time for the candle that the predicted value is for.')
     })
 
     return next_model
-
-
-def get_forecast_response(api):
-    forecast_model = api.model('Forecast', {
-        'timestamp_utc': fields.DateTime(description='The time for which this forecast is applicable.'),
-        'close': fields.Float(description='The forecasted closing price of the asset.')
-    })
-    response_model = api.model('SpotPairForecastResponse', {
-        'pairName': fields.String(description='The pair name used on Binance to fetch market data.'),
-        'forecasts': fields.List(fields.Nested(forecast_model))
-    })
-
-    return response_model
 
 
 class ForecastRequest:
@@ -45,6 +35,9 @@ class ForecastResponse:
 
 
 class NextReponse:
-    def __init__(self, pair_name: str, predicted_close: float):
+    def __init__(self, pair_name: str, prior_candle_close: float, prior_candle_time: str, predicted_close: float, predicted_candle_time: str):
         self.pair_name = pair_name.replace('_', '').upper()
+        self.prior_candle_close = prior_candle_close
+        self.prior_candle_time = prior_candle_time
         self.predicted_close = predicted_close
+        self.predicted_candle_time = predicted_candle_time

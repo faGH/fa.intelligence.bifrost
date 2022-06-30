@@ -8,6 +8,7 @@ from sklearn.utils import shuffle
 
 
 class BifrostGradientBoosterEngine():
+    '''A class that abstracts the complexities of building classification, regression and timeseries forecasting models using XGBoost.'''
     is_timeseries_problem: bool = False
     global_scaling_factor: int = 1
     default_parameters = {
@@ -69,8 +70,9 @@ class BifrostGradientBoosterEngine():
         if replace_whitespace:
             self.replace_whitespace()
 
-    def __determine_common_scale__(self, data: pd.DataFrame):
-        maximum_common_scale = 1
+    def __determine_common_scale__(self, data: pd.DataFrame) -> float:
+        '''Determine a common denominator that can be used to scale values up in order to never break XGBoost with too small values.'''
+        maximum_common_scale: int = 1
 
         for column in data.columns:
             column_is_long_float_type = data[column].dtype == np.float64
@@ -89,6 +91,7 @@ class BifrostGradientBoosterEngine():
         return maximum_common_scale
 
     def __apply_common_scale__(self, data: pd.DataFrame, scale: int, reverse: bool = False):
+        '''Apply a common multiplier to all numerical values.'''
         for column in data.columns:
             column_is_long_float_type = data[column].dtype == np.float64
 
@@ -99,17 +102,20 @@ class BifrostGradientBoosterEngine():
                     data[column] = data[column] * scale
 
     def __get_training_test_dfs__(self, training_split: float):
-        training_record_count = int(len(self.data) * training_split)
+        '''Split data into a training and testing dataframe.'''
+        training_record_count: int = int(len(self.data) * training_split)
 
         return self.data[:training_record_count], self.data[training_record_count:]
 
-    def __get_x_y_dfs__(self, df: pd.DataFrame, column_name_to_predict: str) -> pd.DataFrame:
-        x = df.drop(columns=[column_name_to_predict])
-        y = df.loc[:, [column_name_to_predict]]
+    def __get_x_y_dfs__(self, df: pd.DataFrame, column_name_to_predict: str):
+        '''Split a dataframe into x (regressors) and y (value to predict) dataframes.'''
+        x: pd.DataFrame = df.drop(columns=[column_name_to_predict])
+        y: pd.DataFrame = df.loc[:, [column_name_to_predict]]
 
         return x, y
 
-    def __get_df_matrix__(self, df: pd.DataFrame, column_name_to_predict: str, name: str) -> xgb.DMatrix:
+    def __get_df_matrix__(self, df: pd.DataFrame, column_name_to_predict: str, name: str):
+        '''Covenvert a dataframe into a XGBoost matrix.'''
         x, y = self.__get_x_y_dfs__(df, column_name_to_predict=column_name_to_predict)
         matrix = xgb.DMatrix(data=x, label=y)
 
@@ -117,12 +123,14 @@ class BifrostGradientBoosterEngine():
 
         return matrix, x, y
 
-    def __calculate_mape_score__(self, y_true: pd.Series, y_pred: pd.Series):
+    def __calculate_mape_score__(self, y_true: pd.Series, y_pred: pd.Series) -> float:
+        '''Calculate the Mean Absolute Percentage Error score.'''
         y_true, y_pred = np.array(y_true), np.array(y_pred)
 
         return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
     def __print_model_assessment__(self, test_column_data: pd.Series, predictions: pd.Series):
+        '''Print a model assessment in the console.'''
         if not self.use_binary_classifier:
             print(f'Mean Absolute Error: {mean_absolute_error(test_column_data, predictions)} ({mean_absolute_error(test_column_data, predictions) / self.global_scaling_factor} reverse-scaled.)')
             print(f'Mean Squared Error: {np.sqrt(mean_squared_error(test_column_data, predictions))} ({np.sqrt(mean_squared_error(test_column_data, predictions)) / self.global_scaling_factor} reverse-scaled.)')
@@ -130,10 +138,11 @@ class BifrostGradientBoosterEngine():
         else:
             print(f'Test Data Accuracy: {accuracy_score(test_column_data, predictions)}')
 
-    def __featurize_time_from_column__(self, data: pd.DataFrame, column_name: str, column_prefix: str = 't_'):
+    def __featurize_time_from_column__(self, data: pd.DataFrame, column_name: str, column_prefix: str = 't_') -> pd.DataFrame:
+        '''Convert time data in to features to be used in regression.'''
         __data__: pd.DataFrame = data.copy()
 
-        parsed_date_temporary_column = pd.to_datetime(__data__[column_name])
+        parsed_date_temporary_column: pd.Series = pd.to_datetime(__data__[column_name])
         __data__.drop(columns=[column_name], inplace=True)
 
         __data__[f'{column_prefix}year'] = parsed_date_temporary_column.dt.year
@@ -151,6 +160,7 @@ class BifrostGradientBoosterEngine():
         return __data__
 
     def drop_columns_with_no_unique_values(self):
+        '''Drop columns with only repeating values as those would have no predictive capabilities.'''
         self.columns_to_drop = [c for c in self.data.columns if len(self.data[c].unique()) <= 1]
         print(f'Dropping {len(self.columns_to_drop)} columns due to only containing 1 or less unique values. -> {self.columns_to_drop}')
         self.data.drop(columns=self.columns_to_drop, inplace=True)
@@ -161,6 +171,7 @@ class BifrostGradientBoosterEngine():
                            substitute: str = '_',
                            from_column_names: bool = True,
                            from_values: bool = True):
+        '''Replace whitespace in columns and/or fields with a specified substitute string.'''
         if from_column_names:
             self.data.columns = self.data.columns.str.replace(' ', substitute)
 
@@ -172,6 +183,7 @@ class BifrostGradientBoosterEngine():
         return self
 
     def replace_missing_values(self, value: int = 0):
+        '''Replace missing values in the dataset with sensible defaults. In the case of decision trees, o (zero) typically makes sense.'''
         self.data.fillna(value)
 
         print(f'Replaced all missing values with {value}.')
@@ -179,6 +191,7 @@ class BifrostGradientBoosterEngine():
         return self
 
     def onehot_encode_categorical_columns(self, column_names: list):
+        '''Convert all categorical columns by names, to one-hot encoded columns.'''
         if len(column_names) > 0:
             self.data = pd.get_dummies(self.data, columns=column_names)
             print(f'One-Hot encoded {len(column_names)} columns. -> {column_names}')
@@ -188,6 +201,7 @@ class BifrostGradientBoosterEngine():
     def fit(self,
             enable_hyperparameter_optimization: bool,
             training_split: float = 0.8):
+        '''Initiate the model training.'''
         self.training_split = training_split
 
         if not self.is_timeseries_problem:
@@ -199,7 +213,7 @@ class BifrostGradientBoosterEngine():
         parameters_to_use = self.default_parameters
 
         if enable_hyperparameter_optimization:
-            grid_result = None
+            grid_result: MultiOutputRegressor = None
 
             if self.use_binary_classifier:
                 xgbc0 = xgb.XGBClassifier(objective='binary:logistic',
@@ -250,12 +264,12 @@ class BifrostGradientBoosterEngine():
         return self
 
     def evaluate(self):
+        '''Evaluate the already-trained model.'''
         training_df, testing_df = self.__get_training_test_dfs__(training_split=self.training_split)
         testing_matrix, testing_x, testing_y = self.__get_df_matrix__(testing_df, column_name_to_predict=self.column_name_to_predict, name='Testing')
 
         # Predict.
-        predictions = self.predict(future_data=testing_df,
-                                   bypass_scale_application=True)
+        predictions: pd.Series = self.predict(future_data=testing_df, bypass_scale_application=True)
 
         if not self.use_binary_classifier:
             (training_df[self.column_name_to_predict] / self.global_scaling_factor)[1:].rename('Training Data').plot(figsize=(9, 6), legend=True)
@@ -272,6 +286,7 @@ class BifrostGradientBoosterEngine():
     def predict(self,
                 future_data: pd.DataFrame,
                 bypass_scale_application: bool = False) -> pd.Series:
+        '''Generate a prediction on the pre-trained model given a current state's feature set.'''
         __future_data__: pd.DataFrame = future_data.copy()
 
         if self.is_timeseries_problem and self.data_time_column_name in future_data.columns:
@@ -288,6 +303,7 @@ class BifrostGradientBoosterEngine():
         return predictions
 
     def visualize(self, verbose: bool = False):
+        '''Visualize the decision tree structrure that backs the model.'''
         if verbose:
             for importance_type in ('weight', 'gain', 'cover', 'total_gain', 'total_cover'):
                 print(f'{importance_type}: {self.model.get_score(importance_type=importance_type)}')
