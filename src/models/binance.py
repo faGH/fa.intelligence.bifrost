@@ -9,7 +9,8 @@ def get_next_response(api):
         'prior_candle_close': fields.Float(description='The closing price of the prior/last candle to the prediction.'),
         'prior_candle_time': fields.String(description='The opening time of the prior/last candle to the prediction.'),
         'predicted_close': fields.Float(description='The predicted closing price of the asset for the next candle.'),
-        'predicted_candle_time': fields.String(description='The opening time for the candle that the predicted value is for.')
+        'predicted_candle_time': fields.String(description='The opening time for the candle that the predicted value is for.'),
+        'delta_percentage': fields.String(description='The percentage difference between each current closing price and the predicted next one.')
     })
 
     return next_model
@@ -19,7 +20,8 @@ def get_bulk_response(api):
     data_model = api.model('Data', {
         'time': fields.List(fields.String(description='The time slice that the actual price and predicted price is for.')),
         'actual_closing_prices': fields.List(fields.Float(description='The actual closing price for the given time / candle.')),
-        'predicted_close': fields.List(fields.Float(description='The predicted closing price for the following time / candle.'))
+        'predicted_closing_prices': fields.List(fields.Float(description='The predicted closing price for the following time / candle.')),
+        'delta_percentages': fields.List(fields.String(description='The percentage difference between each current closing price and the predicted next one.'))
     })
     bulk_model = api.model('Bulk', {
         'pair_name': fields.String(description='The pair name of next value.'),
@@ -49,12 +51,13 @@ class ForecastResponse:
 
 
 class NextReponse:
-    def __init__(self, pair_name: str, prior_candle_close: float, prior_candle_time: str, predicted_close: float, predicted_candle_time: str):
+    def __init__(self, pair_name: str, prior_candle_close: float, prior_candle_time: str, predicted_close: float, predicted_candle_time: str, delta_percentage: float):
         self.pair_name = pair_name.replace('_', '').upper()
         self.prior_candle_close = prior_candle_close
         self.prior_candle_time = prior_candle_time
         self.predicted_close = predicted_close
         self.predicted_candle_time = predicted_candle_time
+        self.delta_percentage = delta_percentage
 
 
 class BulkRequest:
@@ -65,10 +68,11 @@ class BulkRequest:
 
 
 class BulkReponse:
-    def __init__(self, pair_name: str, times: list, actual_closing_prices: list, predicted_closing_prices: list):
+    def __init__(self, pair_name: str, times: list, actual_closing_prices: list, predicted_closing_prices: list, delta_percentage: list):
         self.pair_name = pair_name.replace('_', '').upper()
         self.data = {
             'time': times,
-            'actual_closing_prices': actual_closing_prices,
-            'predicted_close': predicted_closing_prices
+            'actual_closing_price': actual_closing_prices,
+            'predicted_closing_prices': predicted_closing_prices,
+            'delta_percentages': delta_percentage
         }
