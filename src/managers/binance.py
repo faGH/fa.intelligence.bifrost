@@ -38,7 +38,7 @@ class BinanceNextPredictionManager(Resource):
         market_data.index = market_data.time
         market_data = market_data.loc[:cutoff_date]
         prior_candle_close, prior_candle_time, predicted_close, predicted_candle_time = market_data_forecasting_engine.get_next_candle_close_prediction(market_data, period)
-        delta_percentage: float = self.__calculate_percentage_difference__(prior_candle_close, predicted_close)
+        delta_percentage: float = self.__calculate_percentage_difference__(predicted_close, prior_candle_close)
         response = NextReponse(pair_name=pair_name,
                                prior_candle_close=prior_candle_close,
                                prior_candle_time=prior_candle_time,
