@@ -72,7 +72,7 @@ class BulkReponse:
         self.pair_name = pair_name.replace('_', '').upper()
         self.data = {
             'time': times,
-            'actual_closing_price': actual_closing_prices,
+            'actual_closing_prices': actual_closing_prices,
             'predicted_closing_prices': predicted_closing_prices,
             'delta_percentages': delta_percentage
         }

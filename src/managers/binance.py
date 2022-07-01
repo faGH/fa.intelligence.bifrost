@@ -38,13 +38,18 @@ class BinanceNextPredictionManager(Resource):
         market_data.index = market_data.time
         market_data = market_data.loc[:cutoff_date]
         prior_candle_close, prior_candle_time, predicted_close, predicted_candle_time = market_data_forecasting_engine.get_next_candle_close_prediction(market_data, period)
+        delta_percentage: float = self.__calculate_percentage_difference__(prior_candle_close, predicted_close)
         response = NextReponse(pair_name=pair_name,
                                prior_candle_close=prior_candle_close,
                                prior_candle_time=prior_candle_time,
                                predicted_close=predicted_close,
-                               predicted_candle_time=predicted_candle_time)
+                               predicted_candle_time=predicted_candle_time,
+                               delta_percentage=delta_percentage)
 
         return response, 200
+
+    def __calculate_percentage_difference__(self, x: float, y: float) -> float:
+        return (x - y) / ((x + y) / 2)
 
     def __get_parsed_request(self, pair_name: str, period: str) -> ForecastRequest:
         parser = reqparse.RequestParser()
@@ -74,6 +79,7 @@ class BinanceBulkPredictionManager(Resource):
         times: list = []
         actual_closing_prices: list() = []
         predicted_closing_prices: list = []
+        detla_percentages: list = []
         trained_model: BifrostGradientBoosterEngine = market_data_forecasting_engine.get_trained_model(market_data, period)
 
         for index, row in filtered_market_data.iterrows():
@@ -85,10 +91,14 @@ class BinanceBulkPredictionManager(Resource):
             times.append(cutoff_date)
             actual_closing_prices.append(actual_close)
             predicted_closing_prices.append(predicted_close)
+            detla_percentages.append(self.__calculate_percentage_difference__(actual_close, predicted_close))
 
-        response: BulkReponse = BulkReponse(pair_name, times, actual_closing_prices, predicted_closing_prices)
+        response: BulkReponse = BulkReponse(pair_name, times, actual_closing_prices, predicted_closing_prices, detla_percentages)
 
         return response, 200
+
+    def __calculate_percentage_difference__(self, x: float, y: float) -> float:
+        return (y - x) / ((x + y) / 2)
 
     def __get_parsed_request(self, pair_name: str, period: str, count_including_latest: int) -> BulkReponse:
         return BulkRequest(pair_name, period, count_including_latest)
