@@ -60,6 +60,7 @@ class BinanceDataAccess():
         data['low'] = data['low'].astype(np.float64)
         data['close'] = data['close'].astype(np.float64)
         data['volume'] = data['volume'].astype(np.float64).astype(np.int64)
+        data.index = data['time']
 
         return data
 
