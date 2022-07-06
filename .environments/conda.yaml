@@ -20,4 +20,5 @@ dependencies:
   - sklearn
   - graphviz
   - flask_healthz
+  - expiringdict
 name: container-environment

@@ -37,7 +37,7 @@ class BinanceNextPredictionManager(Resource):
         cutoff_date: str = f'{request.cutoff_time_utc.year}-{request.cutoff_time_utc.month}-{request.cutoff_time_utc.day}'
         market_data.index = market_data.time
         market_data = market_data.loc[:cutoff_date]
-        prior_candle_close, prior_candle_time, predicted_close, predicted_candle_time = market_data_forecasting_engine.get_next_candle_close_prediction(market_data, period)
+        prior_candle_close, prior_candle_time, predicted_close, predicted_candle_time = market_data_forecasting_engine.get_next_candle_close_prediction(market_data, period, pair_name)
         delta_percentage: float = self.__calculate_percentage_difference__(predicted_close, prior_candle_close)
         response = NextReponse(pair_name=pair_name,
                                prior_candle_close=prior_candle_close,
@@ -80,7 +80,7 @@ class BinanceBulkPredictionManager(Resource):
         actual_closing_prices: list() = []
         predicted_closing_prices: list = []
         detla_percentages: list = []
-        trained_model: BifrostGradientBoosterEngine = market_data_forecasting_engine.get_trained_model(market_data, period)
+        trained_model: BifrostGradientBoosterEngine = market_data_forecasting_engine.get_trained_model(market_data, period, pair_name)
 
         for index, row in filtered_market_data.iterrows():
             time = row['time']
