@@ -1,6 +1,7 @@
-from configuration import APP_ROUTE_PREFIX
+from configuration import APP_ROUTE_PREFIX, MODEL_BULK_INFERENCE_CACHE_IN_SECONDS
 from data.binance_data_access import BinanceDataAccess
 from data.fs_cache_data_access import FsCacheDataAccess
+from data.memory_cache_data_access import MemoryCacheDataAccess
 from engines.bifrost_gradient_booster_engine import BifrostGradientBoosterEngine
 from engines.market_data_forecasting_engine import MarketDataForecastingEngine
 from models.binance import NextReponse, BulkRequest, BulkReponse, get_next_response, get_bulk_response, ForecastRequest
@@ -12,6 +13,7 @@ from data.config_data_access import ConfigDataAccess
 import pandas as pd
 import numpy as np
 
+bulk_inference_cache = MemoryCacheDataAccess(cache_max_age_in_seconds=MODEL_BULK_INFERENCE_CACHE_IN_SECONDS)
 config_data_access = ConfigDataAccess()
 cache_data_access = FsCacheDataAccess(config_data_access)
 data_access = BinanceDataAccess(config_data_access, cache_data_access=cache_data_access)
@@ -72,6 +74,12 @@ class BinanceBulkPredictionManager(Resource):
     def get(self, pair_name: str, period: str, count_including_latest: int) -> BulkReponse:
         '''Gets the next candle prices for the last X records from the latest candle inclusively.'''
         request = self.__get_parsed_request(pair_name, period, count_including_latest)
+        model_key: str = f'{pair_name}-{period}-{count_including_latest}'
+        response: BulkReponse = bulk_inference_cache.get_from_cache(model_key)
+
+        if response is not None:
+            return response
+
         market_data: pd.DataFrame = data_access.get_market_data(request)
         prior_candle_time_delta: np.timedelta64 = np.timedelta64(count_including_latest, 'D')
         date_filter_criteria: str = str(market_data.time.values[-1] - prior_candle_time_delta)
@@ -94,6 +102,8 @@ class BinanceBulkPredictionManager(Resource):
             detla_percentages.append(self.__calculate_percentage_difference__(actual_close, predicted_close))
 
         response: BulkReponse = BulkReponse(pair_name, times, actual_closing_prices, predicted_closing_prices, detla_percentages)
+
+        bulk_inference_cache.write_to_cache(model_key, response)
 
         return response, 200
 
